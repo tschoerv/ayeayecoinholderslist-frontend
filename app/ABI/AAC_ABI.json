@@ -1,0 +1,32 @@
+[
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_param1",
+          "type": "address"
+        }
+      ],
+      "name": "coinBalanceOf",
+      "outputs": [
+        {
+          "name": "balance",
+          "type": "uint256"
+        }
+      ],
+      "payable": true,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "name": "sender", "type": "address" },
+        { "indexed": true, "name": "receiver", "type": "address" },
+        { "indexed": false, "name": "amount", "type": "uint256" }
+      ],
+      "name": "CoinTransfer",
+      "type": "event"
+    }
+  ]
+  

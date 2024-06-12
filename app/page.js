@@ -1,113 +1,149 @@
-import Image from "next/image";
+"use client";
+import holdersList from "./HoldersList/holdersList_20067778.json";
+import aacABI from "./ABI/AAC_ABI.json";
+import { ethers, JsonRpcProvider } from 'ethers';
+import Web3 from 'web3';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableColumn,
+  TableRow,
+  TableCell
+} from "@nextui-org/table";
+import { Link } from "@nextui-org/react";
+import { useEffect, useState } from 'react';
+
+const infuraProjectId = process.env.NEXT_PUBLIC_INFURA_PROJECT_ID;
+const infuraUrl = `https://mainnet.infura.io/v3/${infuraProjectId}`;
+
+// Initialize web3
+const web3 = new Web3(infuraUrl);
+
+// Contract address
+const aacContractAddress = '0x3edDc7ebC7db94f54b72D8Ed1F42cE6A527305bB';
+const aacContract = new web3.eth.Contract(aacABI, aacContractAddress);
+
+// Function to decode event data
+function decodeData(data) {
+  const sender = '0x' + data.slice(26, 66);
+  const receiver = '0x' + data.slice(90, 130);
+  const amountHex = data.slice(130, 194);
+  const amount = parseInt(amountHex, 16);
+  return { sender, receiver, amount };
+}
 
 export default function Home() {
+  const [holders, setHolders] = useState([]);
+  const [ensNames, setEnsNames] = useState({
+    "0x30ae41d5f9988d359c733232c6c693c0e645c77e": "WAAC Wrapper Contract",
+    "0x338678fb544e101bc57ea4d3e316b3d2c79c5338": "goatishduck",
+    "0x6cd9e417c21a4fd3eafa2bffd939411d40cc5ef4": "ngmi42069.eth",
+    "0x5ce9ad759e41bf1b3dfc1a41db940a90d7a43460": "chainquantum.eth",
+    "0x0ee01fd0bdb6b449cf343ecafa7116be49b5286a": "sexdog.eth",
+    "0x6c1ddfb81a3666188267296f10253a5a9b5bae40": "johnnyguitar.eth",
+    "0x15429b0ce3405bf4bb634035e15410f62ecb2647": "ayeaye.blanka.eth",
+    "0x4c88d833f6c9ff72c87eb44a1ed4cb0f428d6aa0": "kindadumb.eth",
+    "0xd3c8820d05d3d4be5bca47fccd677bd2fc116027": "tbar.eth",
+    "0xa54df51afd6e6dec8e733ec66ec9c3c2484b5f71": "lowground.eth",
+    "0x935d2fd458fdf41b6f7b62471f593797866a3ce6": "spreek.eth",
+    "0x21c8dc59f2e9a11c4c1a0c310641968132c6b1be": "talrasha.eth",
+    "0xb3897952ce7a4cea159d232dae8d02ca8273372e": "pimplenis.eth",
+    "0xecee5497b9dbb82e1804e3224f67d00d8d891c69": "lono.eth",
+    "0x0982f0115b5855004e37df6f2c0ed927dd2ed796": "photonwhale.eth",
+    "0xa830488a25751f7da0f5488f714c96f0035687de": "hardporn.eth",
+    "0xbb8eeb1b3494e123144ce38e1aac8f7b96b5efa5": "williamx.eth",
+    "0xaf0f0b5c4110df25ab46dd9f025084229a9f8352": "thefunkghoulbrother.eth",
+    "0xb109e15bb4f808e8cb64aad7d1e4588e0a1f4608": "happystaker.eth"
+});
+
+useEffect(() => {
+  const fetchCoinTransferEvents = async () => {
+    try {
+      const events = await aacContract.getPastEvents('CoinTransfer', {
+        fromBlock: 20067778,
+        toBlock: 'latest'
+      });
+
+      const initialHoldersMap = new Map();
+      holdersList.holders.forEach(holder => {
+        initialHoldersMap.set(holder.address.toLowerCase(), { ...holder });
+      });
+
+      for (const event of events) {
+        const { sender, receiver, amount } = decodeData(event.raw.data);
+
+        const senderLower = sender.toLowerCase();
+        const receiverLower = receiver.toLowerCase();
+
+        // Update sender balance
+        if (initialHoldersMap.has(senderLower)) {
+          initialHoldersMap.get(senderLower).balance -= amount;
+        } else {
+          initialHoldersMap.set(senderLower, { address: sender, balance: -amount });
+        }
+
+        // Update receiver balance
+        if (initialHoldersMap.has(receiverLower)) {
+          initialHoldersMap.get(receiverLower).balance += amount;
+        } else {
+          initialHoldersMap.set(receiverLower, { address: receiver, balance: amount });
+        }
+      }
+      const filteredHolders = Array.from(initialHoldersMap.values()).filter(holder => holder.balance > 0);
+
+      // Sort holders by balance in descending order
+      const sortedHolders = filteredHolders.sort((a, b) => b.balance - a.balance);
+
+      // Update state with sorted holders list
+      setHolders(sortedHolders);
+    } catch (error) {
+      console.error('Failed to fetch CoinTransfer events:', error);
+    }
+  };
+
+  fetchCoinTransferEvents();
+}, []);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-green-700">
+      
+      <Table
+        aria-label="AyeAyeCoin Holders List"
+        topContent="AyeAyeCoin Holders List"
+        className="text-center text-2xl w-auto m-4"
+        isStriped
+        classNames={{
+          wrapper: "bg-yellow-500",
+          th: "bg-yellow-200",
+        }}
+      >
+        <TableHeader>
+          <TableColumn>Address/Name</TableColumn>
+          <TableColumn>AAC Balance</TableColumn>
+        </TableHeader>
+        <TableBody emptyContent={"Fetching data from the blockchain..."}>
+          {holders.map((holder, index) => (
+            <TableRow key={index} >
+              <TableCell className={( index & 1 ? "bg-yellow-200 rounded-l-lg" : "bg-yellow-500")}
+        >
+                <Link href={`https://etherscan.io/address/${holder.address}`} isExternal>
+                  {ensNames[holder.address] || holder.address}
+                </Link>
+              </TableCell>
+              <TableCell className={( index & 1 ? "bg-yellow-200 rounded-r-lg" : "bg-yellow-500")}>{holder.balance.toLocaleString()}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      <div className="flex flex-row mb-4 text-white">
+          <p>made by&nbsp;</p>
+          <Link href={`https://twitter.com/tschoerv`} className=" bg-yellow-500 rounded-md" color='primary' isExternal>
+          &nbsp;tschoerv.eth&nbsp;
+          </Link>
+          <p>&nbsp;- donations welcome!</p>
         </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }
