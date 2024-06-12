@@ -120,7 +120,7 @@ export default function Home() {
       </div>
 
       <Link href={`https://wrapper.ayeayecoin.xyz`} className="md:text-base text-xs mt-3" isExternal>
-        <Button auto className=" bg-yellow-500 " >
+        <Button auto className=" bg-yellow-500 border-2 border-black" >
          AyeAyeCoin Wrapper Interface&nbsp;&rarr;
         </Button>
       </Link>
