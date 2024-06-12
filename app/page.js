@@ -12,7 +12,7 @@ import {
   TableRow,
   TableCell
 } from "@nextui-org/table";
-import { Link } from "@nextui-org/react";
+import { Link, Button } from "@nextui-org/react";
 import { useEffect, useState } from 'react';
 
 const infuraProjectId = process.env.NEXT_PUBLIC_INFURA_PROJECT_ID;
@@ -34,7 +34,12 @@ function decodeData(data) {
   return { sender, receiver, amount };
 }
 
+function formatAddress(address) {
+  return address.length > 10 ? `${address.slice(0, 12)}...${address.slice(-12)}` : address;
+}
+
 export default function Home() {
+  const isMobile = window.innerWidth <= 768;
   const [holders, setHolders] = useState([]);
   const [ensNames, setEnsNames] = useState({
     "0x30ae41d5f9988d359c733232c6c693c0e645c77e": "WAAC Wrapper Contract",
@@ -56,69 +61,75 @@ export default function Home() {
     "0xbb8eeb1b3494e123144ce38e1aac8f7b96b5efa5": "williamx.eth",
     "0xaf0f0b5c4110df25ab46dd9f025084229a9f8352": "thefunkghoulbrother.eth",
     "0xb109e15bb4f808e8cb64aad7d1e4588e0a1f4608": "happystaker.eth"
-});
+  });
 
-useEffect(() => {
-  const fetchCoinTransferEvents = async () => {
-    try {
-      const events = await aacContract.getPastEvents('CoinTransfer', {
-        fromBlock: 20067778,
-        toBlock: 'latest'
-      });
+  useEffect(() => {
+    const fetchCoinTransferEvents = async () => {
+      try {
+        const events = await aacContract.getPastEvents('CoinTransfer', {
+          fromBlock: 20067778,
+          toBlock: 'latest'
+        });
 
-      const initialHoldersMap = new Map();
-      holdersList.holders.forEach(holder => {
-        initialHoldersMap.set(holder.address.toLowerCase(), { ...holder });
-      });
+        const initialHoldersMap = new Map();
+        holdersList.holders.forEach(holder => {
+          initialHoldersMap.set(holder.address.toLowerCase(), { ...holder });
+        });
 
-      for (const event of events) {
-        const { sender, receiver, amount } = decodeData(event.raw.data);
+        for (const event of events) {
+          const { sender, receiver, amount } = decodeData(event.raw.data);
 
-        const senderLower = sender.toLowerCase();
-        const receiverLower = receiver.toLowerCase();
+          const senderLower = sender.toLowerCase();
+          const receiverLower = receiver.toLowerCase();
 
-        // Update sender balance
-        if (initialHoldersMap.has(senderLower)) {
-          initialHoldersMap.get(senderLower).balance -= amount;
-        } else {
-          initialHoldersMap.set(senderLower, { address: sender, balance: -amount });
+          // Update sender balance
+          if (initialHoldersMap.has(senderLower)) {
+            initialHoldersMap.get(senderLower).balance -= amount;
+          } else {
+            initialHoldersMap.set(senderLower, { address: sender, balance: -amount });
+          }
+
+          // Update receiver balance
+          if (initialHoldersMap.has(receiverLower)) {
+            initialHoldersMap.get(receiverLower).balance += amount;
+          } else {
+            initialHoldersMap.set(receiverLower, { address: receiver, balance: amount });
+          }
         }
+        const filteredHolders = Array.from(initialHoldersMap.values()).filter(holder => holder.balance > 0);
 
-        // Update receiver balance
-        if (initialHoldersMap.has(receiverLower)) {
-          initialHoldersMap.get(receiverLower).balance += amount;
-        } else {
-          initialHoldersMap.set(receiverLower, { address: receiver, balance: amount });
-        }
+        // Sort holders by balance in descending order
+        const sortedHolders = filteredHolders.sort((a, b) => b.balance - a.balance);
+
+        // Update state with sorted holders list
+        setHolders(sortedHolders);
+      } catch (error) {
+        console.error('Failed to fetch CoinTransfer events:', error);
       }
-      const filteredHolders = Array.from(initialHoldersMap.values()).filter(holder => holder.balance > 0);
+    };
 
-      // Sort holders by balance in descending order
-      const sortedHolders = filteredHolders.sort((a, b) => b.balance - a.balance);
-
-      // Update state with sorted holders list
-      setHolders(sortedHolders);
-    } catch (error) {
-      console.error('Failed to fetch CoinTransfer events:', error);
-    }
-  };
-
-  fetchCoinTransferEvents();
-}, []);
+    fetchCoinTransferEvents();
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-green-700">
 
-<div className='py-2 px-3 md:pt-2 md:pb-4 md:px-6 mt-2 bg-stone-600 text-center rounded-2xl border-yellow-500 border-8 w-auto text-yellow-500'>
+      <div className='py-2 px-3 md:pt-2 md:pb-4 md:px-6 mt-2 bg-stone-600 text-center rounded-2xl border-yellow-500 border-8 w-auto text-yellow-500'>
         <h3 className=' text-6xl md:text-7xl'>AyeAyeCoin</h3>
         <h3 className=' text-4xl md:text-4xl mt-3 md:mb-1 mb-2'>Holders List</h3>
-        </div>
-      
+      </div>
+
+      <Link href={`https://wrapper.ayeayecoin.xyz`} className="md:text-base text-xs mt-3" isExternal>
+        <Button auto className=" bg-yellow-500 " >
+         AyeAyeCoin Wrapper Interface&nbsp;&rarr;
+        </Button>
+      </Link>
+
       <Table
         aria-label="AyeAyeCoin Holders List"
-        className="text-center text-2xl md:w-auto m-4"     
+        className="text-center text-lg md:w-auto w-screen mb-4 mt-3"
         classNames={{
-          wrapper: "bg-yellow-500",
+          wrapper: "bg-yellow-500 md:rounded-2xl rounded-none",
           th: "bg-yellow-200",
         }}
       >
@@ -130,14 +141,14 @@ useEffect(() => {
         <TableBody emptyContent={"Fetching data from the blockchain..."} >
           {holders.map((holder, index) => (
             <TableRow key={index}>
-               <TableCell className={( index & 1 ? "bg-yellow-200 rounded-l-lg md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}>{index > 0 ? index + "." : ""}</TableCell>
-              <TableCell className={( index & 1 ? "bg-yellow-200 md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}
-        >
-                <Link href={`https://etherscan.io/address/${holder.address}`} className="md:text-base text-xs" isExternal>
-                  {ensNames[holder.address] || holder.address}
+              <TableCell className={(index & 1 ? "bg-yellow-200 rounded-l-lg md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}>{index > 0 ? index + "." : ""}</TableCell>
+              <TableCell className={(index & 1 ? "bg-yellow-200 md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}
+              >
+                <Link href={`https://etherscan.io/address/${holder.address}`} className={`md:text-base text-xs truncate-address`} isExternal>
+                  {index > 0 ? ensNames[holder.address] || (isMobile ? formatAddress(holder.address) : holder.address) : <p>WAAC Wrapper Contract {isMobile ? <br></br> : ""}({((holder.balance / 6000000) * 100).toFixed(1)}%/6M wrapped)</p>}
                 </Link>
               </TableCell>
-              <TableCell className={( index & 1 ? "bg-yellow-200 rounded-r-lg md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}>{holder.balance.toLocaleString()}</TableCell>
+              <TableCell className={(index & 1 ? "bg-yellow-200 rounded-r-lg md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}>{holder.balance.toLocaleString()}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -152,40 +163,40 @@ useEffect(() => {
         />
       </Link>
 
-        <div className="flex flex-row bg-stone-600 gap-5 p-3 px-5 md:px-7 rounded-xl mt-4 mx-2 border-yellow-500 border-5">
-          <Link href={`https://etherscan.io/address/0x30ae41d5f9988d359c733232c6c693c0e645c77e`} isExternal>
-            <Image src="/etherscan.png" width={29} height={29} alt="etherscan" />
-          </Link>
-          <Link href={`https://etherscan.io/address/${aacContractAddress}`} isExternal>
-            <Image src="/etherscan.png" width={29} height={29} alt="etherscan" />
-          </Link>
-          <Link href={`https://github.com/tschoerv/ayeayecoinholderslist-frontend`} isExternal>
-            <Image src="/github.png" width={30} height={30} alt="github" />
-          </Link>
-          <Link href={`https://discord.gg/nft-relics`} isExternal>
-            <Image src="/discord.png" width={30} height={30} alt="discord" />
-          </Link>
-          <Link href={`https://t.me/ayeayeportal`} isExternal>
-            <Image src="/telegram.svg" width={30} height={30} alt="telegram" />
-          </Link>   
-          <Link href={`https://x.com/AyeAyeCoin2015`} isExternal>
-            <Image src="/twitter.png" width={30} height={30} alt="x" />
-          </Link>
-          <Link href={`https://dexscreener.com/ethereum/0xeba623e4f5c7735427a9ef491ecee082dd4bf6ce`} isExternal>
-            <Image src="/dexscreener.png" width={30} height={30} alt="dexscreener" />
-          </Link>
-          <Link href={`https://www.coingecko.com/en/coins/wrapped-ayeayecoin`} isExternal>
-            <Image src="/coingecko.png" width={30} height={30} alt="coingecko" />
-          </Link>
-        </div>
+      <div className="flex flex-row bg-stone-600 gap-5 p-3 px-5 md:px-7 rounded-xl mt-4 mx-2 border-yellow-500 border-5">
+        <Link href={`https://etherscan.io/address/0x30ae41d5f9988d359c733232c6c693c0e645c77e`} isExternal>
+          <Image src="/etherscan.png" width={29} height={29} alt="etherscan" />
+        </Link>
+        <Link href={`https://etherscan.io/address/${aacContractAddress}`} isExternal>
+          <Image src="/etherscan.png" width={29} height={29} alt="etherscan" />
+        </Link>
+        <Link href={`https://github.com/tschoerv/ayeayecoinholderslist-frontend`} isExternal>
+          <Image src="/github.png" width={30} height={30} alt="github" />
+        </Link>
+        <Link href={`https://discord.gg/nft-relics`} isExternal>
+          <Image src="/discord.png" width={30} height={30} alt="discord" />
+        </Link>
+        <Link href={`https://t.me/ayeayeportal`} isExternal>
+          <Image src="/telegram.svg" width={30} height={30} alt="telegram" />
+        </Link>
+        <Link href={`https://x.com/AyeAyeCoin2015`} isExternal>
+          <Image src="/twitter.png" width={30} height={30} alt="x" />
+        </Link>
+        <Link href={`https://dexscreener.com/ethereum/0xeba623e4f5c7735427a9ef491ecee082dd4bf6ce`} isExternal>
+          <Image src="/dexscreener.png" width={30} height={30} alt="dexscreener" />
+        </Link>
+        <Link href={`https://www.coingecko.com/en/coins/wrapped-ayeayecoin`} isExternal>
+          <Image src="/coingecko.png" width={30} height={30} alt="coingecko" />
+        </Link>
+      </div>
 
       <div className="flex flex-row mb-4 mt-2 text-white">
-          <p>made by&nbsp;</p>
-          <Link href={`https://twitter.com/tschoerv`} className=" bg-yellow-500 rounded-md" color='primary' isExternal>
+        <p>made by&nbsp;</p>
+        <Link href={`https://twitter.com/tschoerv`} className=" bg-yellow-500 rounded-md" color='primary' isExternal>
           &nbsp;tschoerv.eth&nbsp;
-          </Link>
-          <p>&nbsp;- donations welcome!</p>
-        </div>
+        </Link>
+        <p>&nbsp;- donations welcome!</p>
+      </div>
     </div>
   );
 }
