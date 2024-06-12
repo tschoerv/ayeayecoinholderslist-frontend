@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import holdersList from "./HoldersList/holdersList_20067778.json";
 import aacABI from "./ABI/AAC_ABI.json";
 import { ethers, JsonRpcProvider } from 'ethers';
@@ -107,37 +108,78 @@ useEffect(() => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-green-700">
+
+<div className='py-2 px-3 md:pt-2 md:pb-4 md:px-6 mt-2 bg-stone-600 text-center rounded-2xl border-yellow-500 border-8 w-auto text-yellow-500'>
+        <h3 className=' text-6xl md:text-7xl'>AyeAyeCoin</h3>
+        <h3 className=' text-4xl md:text-4xl mt-3 md:mb-1 mb-2'>Holders List</h3>
+        </div>
       
       <Table
         aria-label="AyeAyeCoin Holders List"
-        topContent="AyeAyeCoin Holders List"
-        className="text-center text-2xl w-auto m-4"
-        isStriped
+        className="text-center text-2xl md:w-auto m-4"     
         classNames={{
           wrapper: "bg-yellow-500",
           th: "bg-yellow-200",
         }}
       >
         <TableHeader>
+          <TableColumn>#</TableColumn>
           <TableColumn>Address/Name</TableColumn>
           <TableColumn>AAC Balance</TableColumn>
         </TableHeader>
-        <TableBody emptyContent={"Fetching data from the blockchain..."}>
+        <TableBody emptyContent={"Fetching data from the blockchain..."} >
           {holders.map((holder, index) => (
-            <TableRow key={index} >
-              <TableCell className={( index & 1 ? "bg-yellow-200 rounded-l-lg" : "bg-yellow-500")}
+            <TableRow key={index}>
+               <TableCell className={( index & 1 ? "bg-yellow-200 rounded-l-lg md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}>{index > 0 ? index + "." : ""}</TableCell>
+              <TableCell className={( index & 1 ? "bg-yellow-200 md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}
         >
-                <Link href={`https://etherscan.io/address/${holder.address}`} isExternal>
+                <Link href={`https://etherscan.io/address/${holder.address}`} className="md:text-base text-xs" isExternal>
                   {ensNames[holder.address] || holder.address}
                 </Link>
               </TableCell>
-              <TableCell className={( index & 1 ? "bg-yellow-200 rounded-r-lg" : "bg-yellow-500")}>{holder.balance.toLocaleString()}</TableCell>
+              <TableCell className={( index & 1 ? "bg-yellow-200 rounded-r-lg md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}>{holder.balance.toLocaleString()}</TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
 
-      <div className="flex flex-row mb-4 text-white">
+      <Link href={`https://ayeayecoin.xyz/`} className='mt-0' isExternal>
+        <Image
+          src="/AyeAyeCircle.png"
+          width={300}
+          height={300}
+          alt="AyeAye"
+        />
+      </Link>
+
+        <div className="flex flex-row bg-stone-600 gap-5 p-3 px-5 md:px-7 rounded-xl mt-4 mx-2 border-yellow-500 border-5">
+          <Link href={`https://etherscan.io/address/0x30ae41d5f9988d359c733232c6c693c0e645c77e`} isExternal>
+            <Image src="/etherscan.png" width={29} height={29} alt="etherscan" />
+          </Link>
+          <Link href={`https://etherscan.io/address/${aacContractAddress}`} isExternal>
+            <Image src="/etherscan.png" width={29} height={29} alt="etherscan" />
+          </Link>
+          <Link href={`https://github.com/tschoerv/ayeayecoinholderslist-frontend`} isExternal>
+            <Image src="/github.png" width={30} height={30} alt="github" />
+          </Link>
+          <Link href={`https://discord.gg/nft-relics`} isExternal>
+            <Image src="/discord.png" width={30} height={30} alt="discord" />
+          </Link>
+          <Link href={`https://t.me/ayeayeportal`} isExternal>
+            <Image src="/telegram.svg" width={30} height={30} alt="telegram" />
+          </Link>   
+          <Link href={`https://x.com/AyeAyeCoin2015`} isExternal>
+            <Image src="/twitter.png" width={30} height={30} alt="x" />
+          </Link>
+          <Link href={`https://dexscreener.com/ethereum/0xeba623e4f5c7735427a9ef491ecee082dd4bf6ce`} isExternal>
+            <Image src="/dexscreener.png" width={30} height={30} alt="dexscreener" />
+          </Link>
+          <Link href={`https://www.coingecko.com/en/coins/wrapped-ayeayecoin`} isExternal>
+            <Image src="/coingecko.png" width={30} height={30} alt="coingecko" />
+          </Link>
+        </div>
+
+      <div className="flex flex-row mb-4 mt-2 text-white">
           <p>made by&nbsp;</p>
           <Link href={`https://twitter.com/tschoerv`} className=" bg-yellow-500 rounded-md" color='primary' isExternal>
           &nbsp;tschoerv.eth&nbsp;
