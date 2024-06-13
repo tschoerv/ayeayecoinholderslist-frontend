@@ -144,9 +144,9 @@ export default function Home() {
               <TableCell className={(index & 1 ? "bg-yellow-200 rounded-l-lg md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}>{index > 0 ? index + "." : ""}</TableCell>
               <TableCell className={(index & 1 ? "bg-yellow-200 md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}
               >
-                <Link href={`https://etherscan.io/address/${holder.address}`} className={`md:text-base text-xs truncate-address`} isExternal>
+                <Link href={`https://etherscan.io/address/${holder.address}`} className={`md:text-base text-xs truncate-address mt-1 md:mt-0`} isExternal>
                   {index > 0 ? ensNames[holder.address] || (isMobile ? formatAddress(holder.address) : holder.address) : <p>WAAC Wrapper Contract {isMobile ? <br></br> : ""}({((holder.balance / 6000000) * 100).toFixed(1)}%/6M wrapped)</p>}
-                </Link>
+                 </Link>
               </TableCell>
               <TableCell className={(index & 1 ? "bg-yellow-200 rounded-r-lg md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}>{holder.balance.toLocaleString()}</TableCell>
             </TableRow>
