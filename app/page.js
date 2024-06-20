@@ -44,6 +44,7 @@ export default function Home() {
   const [ensNames, setEnsNames] = useState({
     "0x30ae41d5f9988d359c733232c6c693c0e645c77e": "WAAC Wrapper Contract",
     "0x338678fb544e101bc57ea4d3e316b3d2c79c5338": "goatishduck",
+    "0x3dE6e809D7f67f0BfC60e7666563e2afEA65Db67": "goatishduck",
     "0x6cd9e417c21a4fd3eafa2bffd939411d40cc5ef4": "ngmi42069.eth",
     "0x5ce9ad759e41bf1b3dfc1a41db940a90d7a43460": "chainquantum.eth",
     "0x0ee01fd0bdb6b449cf343ecafa7116be49b5286a": "sexdog.eth",
