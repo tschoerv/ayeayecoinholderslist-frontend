@@ -61,7 +61,10 @@ export default function Home() {
     "0xa830488a25751f7da0f5488f714c96f0035687de": "hardporn.eth",
     "0xbb8eeb1b3494e123144ce38e1aac8f7b96b5efa5": "williamx.eth",
     "0xaf0f0b5c4110df25ab46dd9f025084229a9f8352": "thefunkghoulbrother.eth",
-    "0xb109e15bb4f808e8cb64aad7d1e4588e0a1f4608": "happystaker.eth"
+    "0xb109e15bb4f808e8cb64aad7d1e4588e0a1f4608": "happystaker.eth",
+    "0x261dafec8ccb9c5c77a6595b73cf0f8ff5f22780": "blockchainhistoricalsociety.eth",
+    "0xff41da21ff3c36ed08b2640d499b6943b881ca35": "daikanyama.eth",
+    "0x6fe6ccd3c9d5d7604032b095cf8c99770a10942d": "spiderwars"
   });
 
   useEffect(() => {
@@ -142,14 +145,14 @@ export default function Home() {
         <TableBody emptyContent={"Fetching data from the blockchain..."} >
           {holders.map((holder, index) => (
             <TableRow key={index}>
-              <TableCell className={(index & 1 ? "bg-yellow-200 rounded-l-lg md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}>{index > 0 ? index + "." : ""}</TableCell>
-              <TableCell className={(index & 1 ? "bg-yellow-200 md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}
+              <TableCell className={`text-center ${index & 1 ? "bg-yellow-200 rounded-l-lg md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs"}`}>{index > 0 ? index + "." : ""}</TableCell>
+              <TableCell className={`text-center ${index & 1 ? "bg-yellow-200 md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs"}`}
               >
                 <Link href={`https://etherscan.io/address/${holder.address}`} className={`md:text-base text-xs truncate-address mt-1 md:mt-0`} isExternal>
                   {index > 0 ? ensNames[holder.address] || (isMobile ? formatAddress(holder.address) : holder.address) : <p>WAAC Wrapper Contract {isMobile ? <br></br> : ""}({((holder.balance / 6000000) * 100).toFixed(1)}%/6M wrapped)</p>}
                  </Link>
               </TableCell>
-              <TableCell className={(index & 1 ? "bg-yellow-200 rounded-r-lg md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs")}>{holder.balance.toLocaleString()}</TableCell>
+              <TableCell className={`text-center ${index & 1 ? "bg-yellow-200 rounded-r-lg md:text-base text-xs" : "bg-yellow-500 md:text-base text-xs"}`}>{holder.balance.toLocaleString()}</TableCell>
             </TableRow>
           ))}
         </TableBody>
